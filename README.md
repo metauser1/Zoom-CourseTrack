@@ -5,7 +5,9 @@ A program developed in Clojure that allows you to track courses for opening seat
 It uses the following libraries
 
 enlive 
+
 http-kit 
+
 postal
 
 ## Installation
