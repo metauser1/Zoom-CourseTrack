@@ -2,12 +2,10 @@
 
 A program developed in Clojure that allows you to track courses for opening seats (currently at the University of Delaware only) without the stress of having to check yourself.
 
-It uses the following libraries
+It uses the following libraries:
 
 enlive 
-
 http-kit 
-
 postal
 
 ## Installation
