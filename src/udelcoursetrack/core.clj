@@ -1,4 +1,5 @@
 (ns udelcoursetrack.core
+  (:gen-class)
   (:require [net.cgrand.enlive-html :as html]
             [org.httpkit.client :as http]))
 
