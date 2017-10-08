@@ -14,8 +14,6 @@ Download from https://github.com/metauser1/Zoom-CourseTrack/archive/master.zip a
 
 ## Usage
 
-Zoom is capable of tracking any course from the University of Delaware for open seats. If a spot is or becomes available, an email will be sent to you.
-
 Using your favourite terminal, navigate to the directory where you extracted the files.
 
 Run the uberjar:
