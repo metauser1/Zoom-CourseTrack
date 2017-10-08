@@ -10,7 +10,7 @@ postal
 
 ## Installation
 
-Download from https://github.com/metauser1/Zoom-CourseTrack/archive/master.zip
+Download from https://github.com/metauser1/Zoom-CourseTrack/archive/master.zip and extract the files.
 
 ## Usage
 
