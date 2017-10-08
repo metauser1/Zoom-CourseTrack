@@ -1,6 +1,6 @@
 # udelcoursetrack
 
-A program developed in Clojure that allows you to track courses for opening seats (currently at the University of Delaware only) without the stress of having to check yourself.
+A program developed in Clojure that allows you to track courses for opening seats (at the University of Delaware only, for now!) without the stress of having to check yourself.
 
 It uses the following libraries:
 
@@ -25,6 +25,10 @@ Or
 Run the project directly (requires boot):
 
     $ boot run
+
+Build your own uberjar in /target (requires boot as well):
+
+    $ boot build    
 
 A decent tutorial for boot can be found on their github https://github.com/boot-clj/boot#install
 
