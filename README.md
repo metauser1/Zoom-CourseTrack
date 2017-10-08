@@ -18,11 +18,11 @@ Zoom is capable of tracking any course from the University of Delaware for open 
 
 Using your favourite terminal, navigate to the extracted files directory.
 
-Run the project directly (requires boot) :
+Run the project directly (requires boot):
 
     $ boot run
 
-Build an uberjar from the project:
+Build an uberjar from the project (requires boot):
 
     $ boot build
 
