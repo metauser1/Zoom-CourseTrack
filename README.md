@@ -26,6 +26,8 @@ Run the project directly (requires boot):
 
     $ boot run
 
+A decent tutorial for boot can be found on their github https://github.com/boot-clj/boot#install
+
 ## License
 
 Copyright © 2017 FIXME
