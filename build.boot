@@ -3,11 +3,8 @@
 
 (set-env! :resource-paths #{"resources" "src"}
           :source-paths   #{"test"}
-          :dependencies   '[[org.clojure/clojure "RELEASE"]
-                            [adzerk/boot-test "RELEASE" :scope "test"]
+          :dependencies   '[[adzerk/boot-test "RELEASE" :scope "test"]
                             [org.clojure/clojure "1.8.0"]
-                            [cider/cider-nrepl "0.15.0"]
-                            [refactor-nrepl "2.3.1"]
                             [enlive "1.1.6"]
                             [http-kit "2.1.18"]
                             [com.draines/postal "2.0.2"]])
@@ -39,14 +36,3 @@
 (require '[adzerk.boot-test :refer [test]])
 
 (require 'boot.repl)
-(swap! boot.repl/*default-dependencies*
-       concat '[[org.clojure/clojure "1.8.0"]
-                [cider/cider-nrepl "0.15.0"]
-                [refactor-nrepl "2.3.1"]
-                [enlive "1.1.6"]
-                [http-kit "2.1.18"]
-                [com.draines/postal "2.0.2"]])
-
-(swap! boot.repl/*default-middleware*
-       concat '[cider.nrepl/cider-middleware
-                refactor-nrepl.middleware/wrap-refactor])
