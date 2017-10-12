@@ -34,5 +34,4 @@
   (apply (resolve 'app/-main) args))
 
 (require '[adzerk.boot-test :refer [test]])
-
 (require 'boot.repl)
