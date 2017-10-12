@@ -14,7 +14,7 @@
            :user email
            :pass pass})
 
-(defn get-domx
+(defn get-test-domain
   "for testing purposes only"
   []
   ;;add a test file here of scraped course contents
@@ -49,24 +49,6 @@
   "true if the value is in coll"
   [coll value]  
   (some #(= value %) coll))
-
-(defn index-of [coll e] (first (keep-indexed #(if (= e %2) %1) coll)))
-
-
-(defn nthselect
-  "take the element at the index"
-  [sequence index]
-  (nth sequence index))
-
-
-(defn donext
-  "prints true if URL has a next page"
-  [f nextdom]
-  (if (= (f nextdom) ["true"])
-    (println "this dom has a next page")
-    ))
-
-
 
 (defn cycleprint
   "adds elements to a new sequence if the criteria is met"
