@@ -5,6 +5,10 @@
             [postal.core :refer [send-message]]
             [clojure.string :as s]))
 
+(declare stopnow)
+(declare trackvar)
+(declare prompt)
+
 ;;the throw-away email address and password used to send the alerts
 (def email "udcoursetrack@gmail.com")
 (def pass "pass-word")
@@ -20,9 +24,6 @@
   ;;add a test file here of scraped course contents
   (read-string (slurp "/home/carl/acct200010")))
 
-(def lasttrack "")
-(def nextlasttrack "")
-
 (defn scrape-website
   "scrape the contents of the URL depending on the course (variant 1)"
   [course]
@@ -37,9 +38,8 @@
       newseq
       (recur (inc iteration)
              ;;criteria
-             (if (in? (map :class (map :attrs (nth sequence iteration))) "\\\"coursenum\\\"")
-               (if ((complement in?) newseq (filter (complement nil?) (map :content (nth sequence iteration))))
-                   (do 
+             (if (contains? (set (map :class (map :attrs (nth sequence iteration)))) "\\\"coursenum\\\"")
+               (if ((complement contains?) (set newseq) (filter (complement nil?) (map :content (nth sequence iteration))))
                      (into newseq 
                            ;;class code and class type
                            [(filter (complement nil?) (map :content (nth sequence iteration)))
@@ -63,20 +63,16 @@
                             (filter (complement nil?) (map :content (nth sequence (+ iteration 6))))
                             ;;instructor
                             (s/replace (s/replace (s/replace (s/replace (nth (nth sequence (+ iteration 7)) 0) #"\\n                  " "") #"\\n               " "") #"         " "") #"      " "")
-                            ])) (into newseq nil)) 
+                            ]) (into newseq nil)) 
                (into newseq nil))))))
-
-(def prompt "")
 
 (defn controlledinput
   "prompts for a valid course name"
   []
   (def ct (do (println "Please type in the course you want to track and press enter") (read-line)))
-  (def check (map #(nth % 0) (map first (take-nth 9 (cycleprint (filter (complement nil?) (map :content (get-next-dom ct))))))))
+  (def check (map #(nth % 0) (map first (take-nth 9 (cycleprint (filter (complement nil?) (map :content (scrape-website ct))))))))
   (if (> (count check) 1) (do (println (str "Here are the list of courses available, " (apply str (interleave check (repeat ", "))) "please narrow down your search")) (controlledinput))
       (if (= (count check) 0) (do (println "0 matches found, please search again") (controlledinput)) ct)))
-
-
 
 (defn defrefresh
   "refresh local definitions of scraped data"
@@ -88,9 +84,9 @@
 
   (def number-of-coursesx (count (take-nth 9 (cycleprint relevantlist))))
  
-  (def coursesx (map #(nth % 0) (map first (take-nth 9 (cycleprint relevantlist)))))
+  (def coursesx (map first (map first (take-nth 9 (cycleprint relevantlist)))))
   
-  (def typesx (map #(nth % 0) (map second (take-nth 9 (cycleprint relevantlist)))))
+  (def typesx (map first (map second (take-nth 9 (cycleprint relevantlist)))))
   (def course-typesx (map vector coursesx typesx))
   
   (def namesx (take-nth 9 (drop 1 (cycleprint relevantlist))))
@@ -111,9 +107,8 @@
   (def timesx (take-nth 9 (drop 6 (cycleprint relevantlist))))
   (def course-timesx (map vector coursesx timesx))
 
-  (def roomx (map #(nth % 0) (map first (take-nth 9 (drop 7 (cycleprint relevantlist))))))
+  (def roomx (map first (map first (take-nth 9 (drop 7 (cycleprint relevantlist))))))
   (def course-roomx (map vector coursesx roomx))
-
 
   (def instructorsx (take-nth 9 (drop 8 (cycleprint relevantlist))))
   (def course-instructorsx (map vector coursesx instructorsx))
@@ -122,9 +117,7 @@
   (def course-infox2 (first (map vector coursesx typesx namesx seatsx full-or-notx durationx daysx timesx roomx instructorsx)))
 
   (def subjectformat (str "Your course " (first coursesx) " has seats available!"))
-  (def bodyformat (str "Your course " (first course-infox2) " has seats available (" (nth course-infox2 3) " LEFT) with professor " (last course-infox2) " from " (nth course-infox2 7) " on " (nth course-infox2 6) " in room " (nth course-infox2 8))))
-
-(defrefresh)
+  (def bodyformat (str "Your course " (first course-infox2) " has seats available (" (nth course-infox2 3) " LEFT) with professor " (last course-infox2) " from " (nth course-infox2 7) " on " (nth course-infox2 6) " in room " (nth course-infox2 8) ".")))
 
 (defn checkcontains
   "update and list course information vector"
@@ -143,9 +136,6 @@
 (defn repeatevery [task duration] 
   (future (while true (do (Thread/sleep duration) (task)))))
 
-(declare stopnow)
-(declare trackvar)
-
 (defn stoptrackcondition
   "checks for seat availability within the course information vector until a seat is found"
   []
@@ -154,8 +144,7 @@
 (defn begintracking
   "update course information definitions and call the checker"
   []
-  (defrefresh)
-   (def trackvar (repeatevery #(println (checkcontains)) 1000))
+  (def trackvar (repeatevery #(println (checkcontains)) 1000))
   (Thread/sleep 1000)
   (stoptrackcondition))
 
@@ -167,6 +156,5 @@
   (begintracking))
 
 (defn -main []
-  (defrefresh)
   (coursetrack)
   )
