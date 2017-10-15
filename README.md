@@ -4,9 +4,14 @@ A program developed in Clojure that allows you to track courses for opening seat
 
 It uses the following libraries:
 
-enlive 
+enlive
+
 http-kit 
+
 postal
+
+clojure.string
+
 
 ## Installation
 
@@ -18,7 +23,7 @@ Using your favourite terminal, navigate to the directory where you extracted the
 
 Run the uberjar:
 
-    $ java -jar udelcoursetrack-0.1.0-SNAPSHOT-standalone.jar
+    $ java -jar udelcoursetrack-0.2.0-SNAPSHOT-standalone.jar
 
 Or
 
