@@ -1,9 +1,9 @@
 (ns udelcoursetrack.core
   (:gen-class)
   (:require [net.cgrand.enlive-html :as html]
-            [org.httpkit.client :as http]))
-
-(require '[postal.core :refer [send-message]])
+            [org.httpkit.client :as http]
+            [postal.core :refer [send-message]]
+            [clojure.string :as s]))
 
 ;;the throw-away email address and password used to send the alerts
 (def email "udcoursetrack@gmail.com")
@@ -14,7 +14,7 @@
            :user email
            :pass pass})
 
-(defn get-test-domain
+(defn scrapefile
   "for testing purposes only"
   []
   ;;add a test file here of scraped course contents
@@ -23,32 +23,11 @@
 (def lasttrack "")
 (def nextlasttrack "")
 
-(defn get-dom2
-  "scrape the contents of the URL depending on the course (variant 2)"
-  [course]
-  (html/html-snippet
-   @(http/get (str "https://udapps.nss.udel.edu/CoursesSearch/search-results?&term=2178&search_type=A&course_sec=" course "&text_info=All&credit=Any&session=All&instrtn_mode=All&startat=2178" nextlasttrack) {:insecure? true})))
-
-(defn get-dom
+(defn scrape-website
   "scrape the contents of the URL depending on the course (variant 1)"
   [course]
   (html/html-snippet
    @(http/get (str "https://primus.nss.udel.edu/CoursesSearch/search-results?term=2178&search_type=A&course_sec=" course "&session=All&course_title=&instr_name=&text_info=All&instrtn_mode=All&time_start_hh=&time_start_ampm=&credit=Any&keyword=&subj_area_code=&college=") {:insecure? true})))
-
-
-(defn get-next-dom
-  "scrape the contents of the URL depending on the course (including next page(s))"
-  [course]
-  (concat (get-dom course) 
-          (html/html-snippet
-           @(http/get (str "https://udapps.nss.udel.edu/CoursesSearch/search-results?&term=2178&search_type=A&course_sec=" course "&text_info=All&credit=Any&session=All&instrtn_mode=All&startat=2178" lasttrack) {:insecure? true}))
-          (html/html-snippet
-                            @(http/get (str "https://udapps.nss.udel.edu/CoursesSearch/search-results?&term=2178&search_type=A&course_sec=" course "&text_info=All&credit=Any&session=All&instrtn_mode=All&startat=2178" nextlasttrack) {:insecure? true}))))
-
-(defn in? 
-  "true if the value is in coll"
-  [coll value]  
-  (some #(= value %) coll))
 
 (defn cycleprint
   "adds elements to a new sequence if the criteria is met"
@@ -65,25 +44,25 @@
                            ;;class code and class type
                            [(filter (complement nil?) (map :content (nth sequence iteration)))
                             ;;class name
-                            (clojure.string/replace (nth (nth sequence (+ iteration 1)) 0) #"\\n                  " "")
+                            (s/replace (nth (nth sequence (+ iteration 1)) 0) #"\\n                  " "")
                             ;;open seats
-                            (clojure.string/replace (clojure.string/replace (nth (nth sequence (+ iteration 2)) 0) #"\\n                  " "") #"\\n               " "")
+                            (s/replace (s/replace (nth (nth sequence (+ iteration 2)) 0) #"\\n                  " "") #"\\n               " "")
                             ;;currently full or not
                             (if (= (filter (complement nil?) (map :content (nth sequence (+ iteration 2)))) '()) "seats available" "currently full")
                             ;;duration of course
-                            (clojure.string/replace (clojure.string/replace (nth (nth sequence (+ iteration 3)) 0) #"\\n                  " "") #"\\n               " "")
+                            (s/replace (s/replace (nth (nth sequence (+ iteration 3)) 0) #"\\n                  " "") #"\\n               " "")
                             ;;days
-                            (clojure.string/replace (nth (nth sequence (+ iteration 4)) 0) #"[\\n ]" "")
+                            (s/replace (nth (nth sequence (+ iteration 4)) 0) #"[\\n ]" "")
                             ;;exam days
                             ;;clojure.string/replace (nth (nth sequence (+ iteration 4)) 2) #"[\\n ]" "")
                             ;;time
-                            (clojure.string/replace (nth (nth sequence (+ iteration 5)) 0) #"[\\n ]" "")
+                            (s/replace (nth (nth sequence (+ iteration 5)) 0) #"[\\n ]" "")
                             ;;exam time
                             ;;(clojure.string/replace (nth (nth sequence (+ iteration 5)) 2) #"[\\n ]" "")
                             ;;class and exam location
                             (filter (complement nil?) (map :content (nth sequence (+ iteration 6))))
                             ;;instructor
-                            (clojure.string/replace (clojure.string/replace (clojure.string/replace (clojure.string/replace (nth (nth sequence (+ iteration 7)) 0) #"\\n                  " "") #"\\n               " "") #"         " "") #"      " "")
+                            (s/replace (s/replace (s/replace (s/replace (nth (nth sequence (+ iteration 7)) 0) #"\\n                  " "") #"\\n               " "") #"         " "") #"      " "")
                             ])) (into newseq nil)) 
                (into newseq nil))))))
 
@@ -102,20 +81,13 @@
 (defn defrefresh
   "refresh local definitions of scraped data"
   []
-  (def relevantlist1 (filter (complement nil?) (map :content (get-dom ct))))
+  ;;for relevantlist, use (scrape-file) for testing, otherwise use to scrape from website (scrape-website ct)
+  (def relevantlist (filter (complement nil?) (map :content (scrape-website ct))))
 
-
-  ;;for relevantlist, use (get-domx) for testing, otherwise use to scrape from website (get-next-dom ct)
-  (def relevantlist (filter (complement nil?) (map :content (get-next-dom ct))))
-
-  (def relevantlist2 (filter (complement nil?) (map :content (get-dom ct))))
   (def generate-coursesx (cycleprint relevantlist))
-  
-  (def emptylist? #(= % '()))
 
   (def number-of-coursesx (count (take-nth 9 (cycleprint relevantlist))))
-  
-  (def coursesx1 (map #(nth % 0) (map first (take-nth 9 (cycleprint relevantlist1)))))
+ 
   (def coursesx (map #(nth % 0) (map first (take-nth 9 (cycleprint relevantlist)))))
   
   (def typesx (map #(nth % 0) (map second (take-nth 9 (cycleprint relevantlist)))))
@@ -146,31 +118,19 @@
   (def instructorsx (take-nth 9 (drop 8 (cycleprint relevantlist))))
   (def course-instructorsx (map vector coursesx instructorsx))
 
-
   (def course-infox (map vector coursesx typesx namesx seatsx full-or-notx durationx daysx timesx roomx instructorsx))
   (def course-infox2 (first (map vector coursesx typesx namesx seatsx full-or-notx durationx daysx timesx roomx instructorsx)))
 
   (def subjectformat (str "Your course " (first coursesx) " has seats available!"))
-
-  (def bodyformat (str "Your course " (first course-infox2) " has seats available (" (nth course-infox2 3) " LEFT) with professor " (last course-infox2) " from " (nth course-infox2 7) " on " (nth course-infox2 6) " in room " (nth course-infox2 8)))
-
-  )
+  (def bodyformat (str "Your course " (first course-infox2) " has seats available (" (nth course-infox2 3) " LEFT) with professor " (last course-infox2) " from " (nth course-infox2 7) " on " (nth course-infox2 6) " in room " (nth course-infox2 8))))
 
 (defrefresh)
-
 
 (defn checkcontains
   "update and list course information vector"
   []
   (defrefresh)
   course-infox)
-
-
-
-
-
-
-
 
 (defn sendmail
   "send mail to the prompted email address"
@@ -183,7 +143,6 @@
 (defn repeatevery [task duration] 
   (future (while true (do (Thread/sleep duration) (task)))))
 
-
 (declare stopnow)
 (declare trackvar)
 
@@ -191,8 +150,6 @@
   "checks for seat availability within the course information vector until a seat is found"
   []
   (if (= (apply #(nth % 4) (checkcontains)) "seats available") (do (future-cancel trackvar) (println "Free seats are available! Sending email...") (defrefresh) (sendmail)) (stoptrackcondition)))
-
-
 
 (defn begintracking
   "update course information definitions and call the checker"
@@ -202,9 +159,6 @@
   (Thread/sleep 1000)
   (stoptrackcondition))
 
-
-
-
 (defn coursetrack
   "obtain user email address and valid course entry and start tracking"
   []
@@ -212,14 +166,7 @@
   (controlledinput)
   (begintracking))
 
-
-
-
-
-
-
 (defn -main []
   (defrefresh)
   (coursetrack)
   )
-
