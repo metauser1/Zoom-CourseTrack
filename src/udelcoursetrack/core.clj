@@ -66,6 +66,7 @@
                             ]) (into newseq nil)) 
                (into newseq nil))))))
 
+
 (defn controlledinput
   "prompts for a valid course name"
   []
